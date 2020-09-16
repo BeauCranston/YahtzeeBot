@@ -87,9 +87,9 @@ public class YahtzeeStrategy {
                 if (game.setScore("SS")) {
                     continue;
                 }
-            if (DetermineUpperLower(tempRoll))
+            if (DetermineUpperLower(tempRoll, turnNum))
                     continue;
-            if(SumArray(tempRoll) > 23 &&  boxFilled.get(Yahtzee.Boxes.FK) && boxFilled.get(Yahtzee.Boxes.TK) && boxFilled.get(Yahtzee.Boxes.U6) && boxFilled.get(Yahtzee.Boxes.U5) && boxFilled.get(Yahtzee.Boxes.U4) ){
+            if(SumArray(tempRoll) > 23 ){
                 if (!boxFilled.get(Yahtzee.Boxes.C))
                     if(game.setScore("C")){
                         //System.out.println("hit C");
@@ -300,43 +300,100 @@ public class YahtzeeStrategy {
         return sum;
     }
 
-    public boolean DetermineUpperLower(int[]tempRoll) {
+    public boolean DetermineUpperLower(int[]tempRoll, int turnNum) {
         if (thisRollHas.get(Yahtzee.Boxes.FK)) {
-            if(!boxFilled.get(Yahtzee.Boxes.FK)){
-                return game.setScore("FK");
+            if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2]))) && tempRoll[2] >= 1){
+                return game.setScore(DetermineUpperBox(tempRoll[2]));
             }
             else{
-                String upperBox = DetermineUpperBox(tempRoll[2]);
-                if(!boxFilled.get(getKeyFromString(upperBox))){
-                    return game.setScore(upperBox);
-
+                if(!boxFilled.get(Yahtzee.Boxes.FK)){
+//                    if(SumArray(tempRoll) < 12){
+//                        if()
+//                    }
+                    return game.setScore("FK");
                 }
                 else{
-                    return false;
+                    if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
+                        return game.setScore(DetermineUpperBox(tempRoll[2]));
+                    }
+                    else{
+                        if(!boxFilled.get(Yahtzee.Boxes.TK)){
+                            return game.setScore("TK");
+                        }
+                        else{
+                            return false;
+                        }
+                    }
                 }
-                //determine which upper card to choose from
             }
         }
         else if (thisRollHas.get(Yahtzee.Boxes.TK)){
-            if(!boxFilled.get(Yahtzee.Boxes.TK)){
-                return game.setScore("TK");
-            }
-            else{
-                String upperBox = DetermineUpperBox(tempRoll[2]);
-                if(!boxFilled.get(getKeyFromString(upperBox))){
-                    return game.setScore(upperBox);
-
+            if(turnNum < 11){
+                if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
+                    return game.setScore(DetermineUpperBox(tempRoll[2]));
                 }
                 else{
-                    return false;
+                    if(!boxFilled.get(Yahtzee.Boxes.TK)){
+                        return game.setScore("TK");
+                    }
+                    else{
+                        return false;
+                    }
+
                 }
             }
+            else{
+                if(!boxFilled.get(Yahtzee.Boxes.TK)){
+                    return game.setScore("TK");
+                }
+                else{
+                    if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
+                        return game.setScore(DetermineUpperBox(tempRoll[2]));
+                    }
+                    else{
+                        return false;
+                    }
+
+                }
+            }
+
         }
         else{
-           return false;
+            return false;
         }
     }
+//            if(!boxFilled.get(Yahtzee.Boxes.FK)){
+//                return game.setScore("FK");
+//            }
+//            else{
+//                String upperBox = DetermineUpperBox(tempRoll[2]);
+//                if(!boxFilled.get(getKeyFromString(upperBox))){
+//                    return game.setScore(upperBox);
+//
+//                }
+//                else{
+//                    return false;
+//                }
+//                //determine which upper card to choose from
+//            }
 
+
+    //            if(!boxFilled.get(Yahtzee.Boxes.TK)){
+//                return game.setScore("TK");
+//            }
+//            else{
+//                String upperBox = DetermineUpperBox(tempRoll[2]);
+//                if(!boxFilled.get(getKeyFromString(upperBox))){
+//                    return game.setScore(upperBox);
+//
+//                }
+//                else{
+//                    return false;
+//                }
+//            }
+//        }
+//        else{
+//           return false;
     public String DetermineUpperBox(int upperBoxNum){ ;
         switch (upperBoxNum){
             case 1:
