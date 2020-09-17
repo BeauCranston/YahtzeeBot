@@ -44,15 +44,15 @@ public class YahtzeeStrategy {
 
             //System.out.println( "Turn " + turnNum + " Roll 1: " + Arrays.toString( roll ) );
             thisRollHas = game.has();
-
+            int[] tempRoll = roll.clone();
+            Arrays.sort(tempRoll);
             //DETERMINE IF THE ROLL IS A YAHTZEE LARGE STRAIGHT OR FULL HOUSE
             if(DetermineAutoFillPatterns()){
                 continue;
             }
             // Since it is easier to reason with sorted arrays, we clone the
             // roll and work off a temporary copy.
-            int[] tempRoll = roll.clone();
-            Arrays.sort(tempRoll);
+
 
             //DECIDE IF THERE ARE DICE WE SHOULD KEEP
             //PRIORITY IS FK > TK > PAIRS
@@ -61,7 +61,8 @@ public class YahtzeeStrategy {
             roll = game.play(keep);
             //System.out.println( "Turn " + turnNum + " Roll 2: " + Arrays.toString( roll ) );
             thisRollHas = game.has();
-
+            tempRoll = roll.clone();
+            Arrays.sort(tempRoll);
 //            // NOTE THIS IS THE SAME AS ABOVE, WHICH IS SILLY!!!
             if(DetermineAutoFillPatterns()){
                 continue;
@@ -69,8 +70,7 @@ public class YahtzeeStrategy {
             // DO NOT SORT THE ROLL ARRAY - the order is significant!!
             // Since it is easier to reason with sorted arrays, we clone the
             // roll and work off a temporary copy.
-            tempRoll = roll.clone();
-            Arrays.sort(tempRoll);
+
             // If we have a 3 of a kind or 4 of a kind, roll for yahtzee
             // otherwise roll all 5 dice
             DetermineKeepSituation(tempRoll);
@@ -78,26 +78,27 @@ public class YahtzeeStrategy {
             roll = game.play(keep);
             //System.out.println( "Turn " + turnNum + " Roll 3: " + Arrays.toString( roll ) );
             thisRollHas = game.has();
-
+            tempRoll = roll.clone();
+            Arrays.sort(tempRoll);
             // MUST SCORE SOMETHING!!
             if(DetermineAutoFillPatterns()){
                 continue;
             }
-            if(thisRollHas.get(Yahtzee.Boxes.SS))
+            if(thisRollHas.get(Yahtzee.Boxes.SS) && !boxFilled.get(Yahtzee.Boxes.SS))
                 if (game.setScore("SS")) {
                     continue;
                 }
             if (HandleTkFk(tempRoll, turnNum))
                     continue;
             int sumOfRoll = SumArray(tempRoll);
-            if(sumOfRoll > 16 ){
+            if(sumOfRoll > 18 ){
                 if (!boxFilled.get(Yahtzee.Boxes.C))
                     if(game.setScore("C")){
                         //System.out.println("hit C");
                         continue;
                     }
             }
-            else if(sumOfRoll < 8){
+            else if(sumOfRoll < 6){
                 if(!boxFilled.get(Yahtzee.Boxes.U1)){
                     if(game.setScore("U1")){
                         //System.out.println("hit U1");
@@ -160,16 +161,20 @@ public class YahtzeeStrategy {
                 if(!boxFilled.get(Yahtzee.Boxes.U1)){
                     scratchBox = Yahtzee.Boxes.U1;
                 }
+
                 else if(!boxFilled.get(Yahtzee.Boxes.U2)){
                     scratchBox = Yahtzee.Boxes.U2;
                 }
                 else if(!boxFilled.get(Yahtzee.Boxes.Y)){
                     scratchBox = Yahtzee.Boxes.Y;
                 }
+
                 else if(!boxFilled.get(Yahtzee.Boxes.LS)){
                     scratchBox = Yahtzee.Boxes.LS;
                 }
-
+                else if(!boxFilled.get(Yahtzee.Boxes.FK)){
+                    scratchBox = Yahtzee.Boxes.FK;
+                }
                 else if(!boxFilled.get(Yahtzee.Boxes.U3)){
                     scratchBox = Yahtzee.Boxes.U3;
                 }
@@ -180,9 +185,7 @@ public class YahtzeeStrategy {
                 else if(!boxFilled.get(Yahtzee.Boxes.TK)){
                     scratchBox = Yahtzee.Boxes.TK;
                 }
-                else if(!boxFilled.get(Yahtzee.Boxes.FK)){
-                    scratchBox = Yahtzee.Boxes.FK;
-                }
+
                 else if(!boxFilled.get(Yahtzee.Boxes.U4)){
                     scratchBox = Yahtzee.Boxes.U4;
                 }
@@ -207,32 +210,33 @@ public class YahtzeeStrategy {
         return game.getGameScore();
     }
 
-    public boolean CheckPattern(Object key, String pattern){
-        if ((thisRollHas.get(key))) {
-            // note that set score can fail if the pattern doesn't actually match up or
-            // if the box is already filled.  Not a problem with yahtzee but maybe for
-            // other paterns it is a problem.
-            if (game.setScore(pattern)) {
+    public boolean DetermineAutoFillPatterns(){
+        if(thisRollHas.get(Yahtzee.Boxes.Y)){
+            if(game.setScore("Y")) {
                 return true;
             }
             else{
                 return false;
             }
         }
-        else{
-            return false;
-        }
-    }
+        else if(thisRollHas.get(Yahtzee.Boxes.LS) && !boxFilled.get(Yahtzee.Boxes.LS)){
+            if(game.setScore("LS")) {
+                return true;
+            }
+            else{
+                return false;
+            }
 
-    public boolean DetermineAutoFillPatterns(){
-        if(CheckPattern(Yahtzee.Boxes.Y, "Y")){
-            return true;
         }
-        else if(CheckPattern(Yahtzee.Boxes.LS, "LS")){
-            return true;
-        }
-        else if(CheckPattern(Yahtzee.Boxes.FH, "FH")){
-            return true;
+        else if(thisRollHas.get(Yahtzee.Boxes.FH)) {
+
+            if (game.setScore("FH")) {
+                return true;
+            }
+            else {
+                return false;
+            }
+
         }
         else{
             return false;
@@ -240,7 +244,6 @@ public class YahtzeeStrategy {
     }
 
     public void DetermineKeepSituation(int[]tempRoll){
-        int consecutiveDice = determineConsecutiveDice(tempRoll);
         if (thisRollHas.get(Yahtzee.Boxes.FK) || thisRollHas.get(Yahtzee.Boxes.TK)) {
             // if there is a 3 or 4 of a kind, the middle die is always
             // part of the pattern, keep any die that matches it
@@ -274,7 +277,7 @@ public class YahtzeeStrategy {
         else{
             if(checkPairs(tempRoll)){
                 //if a full house is open and TK and FK are not open then keep both of the pairs
-                if(!boxFilled.get(Yahtzee.Boxes.FH) && boxFilled.get(Yahtzee.Boxes.TK) && boxFilled.get(Yahtzee.Boxes.FK)){
+                if(!boxFilled.get(Yahtzee.Boxes.FH) && boxFilled.get(Yahtzee.Boxes.FK) && boxFilled.get(Yahtzee.Boxes.TK)){
                     KeepAllPairs(tempRoll);
                 }
                 //otherwise take the highest pair of the 2
@@ -283,15 +286,8 @@ public class YahtzeeStrategy {
                 }
             }
             else{
-                int highestIndex = 0;
-                int current = 0;
                 for(int i = 0; i < roll.length; i++){
-                    if(tempRoll[i] > tempRoll[highestIndex]){
-                        highestIndex = i;
-                    }
-                }
-                for(int i = 0; i < roll.length; i++){
-                    if(roll[i] == tempRoll[highestIndex]){
+                    if(roll[i] == tempRoll[roll.length - 1]){
                         keep[i] = true;
                     }
                 }
@@ -299,16 +295,6 @@ public class YahtzeeStrategy {
 
 
         }
-    }
-    public int determineConsecutiveDice(int[] tempRoll){
-        int consecutiveCount = 0;
-        for(int i =0; i < tempRoll.length - 1; i++) {
-            if (tempRoll[i + 1] - tempRoll[i] == 1) {
-                consecutiveCount++;
-            }
-        }
-        return consecutiveCount;
-
     }
     public boolean checkPairs(int[]tempRoll){
         boolean hasPair = false;
@@ -357,38 +343,32 @@ public class YahtzeeStrategy {
 
     public boolean HandleTkFk(int[]tempRoll, int turnNum) {
         if (thisRollHas.get(Yahtzee.Boxes.FK)) {
-            if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2]))) && tempRoll[2] >= 1){
+            if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
                 return game.setScore(DetermineUpperBox(tempRoll[2]));
             }
             else{
                 if(!boxFilled.get(Yahtzee.Boxes.FK)){
-//                    if(SumArray(tempRoll) < 12){
-//                        if()
-//                    }
                     return game.setScore("FK");
                 }
                 else{
-                    if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
-                        return game.setScore(DetermineUpperBox(tempRoll[2]));
+
+                    if(!boxFilled.get(Yahtzee.Boxes.TK)){
+                        return game.setScore("TK");
                     }
                     else{
-                        if(!boxFilled.get(Yahtzee.Boxes.TK)){
-                            return game.setScore("TK");
-                        }
-                        else{
-                            return false;
-                        }
+                        return false;
                     }
+
                 }
             }
         }
         else if (thisRollHas.get(Yahtzee.Boxes.TK)){
-            if(turnNum < 11){
+            if(turnNum < 10){
                 if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
                     return game.setScore(DetermineUpperBox(tempRoll[2]));
                 }
                 else{
-                    if(!boxFilled.get(Yahtzee.Boxes.TK)){
+                    if(!boxFilled.get(Yahtzee.Boxes.TK) && SumArray(tempRoll) > 15 ){
                         return game.setScore("TK");
                     }
                     else{
@@ -402,7 +382,7 @@ public class YahtzeeStrategy {
                     return game.setScore(DetermineUpperBox(tempRoll[2]));
                 }
                 else{
-                    if(!boxFilled.get(Yahtzee.Boxes.TK)){
+                    if(!boxFilled.get(Yahtzee.Boxes.TK) && SumArray(tempRoll) > 15 ){
                         return game.setScore("TK");
                     }
                     else{
