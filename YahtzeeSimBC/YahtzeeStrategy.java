@@ -176,7 +176,17 @@ public class   YahtzeeStrategy {
 
     public boolean determineAutoFillPatterns(int turnNum){
         if(thisRollHas.get(Yahtzee.Boxes.Y)){
-            return tryScoreValue("Y", false);
+            if(roll[1] > 4){
+                if(!boxFilled.get(getKeyFromString(determineUpperBox(roll[1]))) && !boxFilled.get(Yahtzee.Boxes.Y) && turnNum > 9){
+                    return tryScoreValue(determineUpperBox(roll[1]), false);
+                }
+                else{
+                    return tryScoreValue("Y", false);
+                }
+            }
+            else{
+                return tryScoreValue("Y", false);
+            }
         }
         else if(thisRollHas.get(Yahtzee.Boxes.LS) && !boxFilled.get(Yahtzee.Boxes.LS)){
             return tryScoreValue("LS", false);
@@ -195,14 +205,16 @@ public class   YahtzeeStrategy {
         }
     }
     public void determineKeepSituation(int[]tempRoll, int rollNum, int turnNum){
+        // if hand has a full house and full house has been scored
         if(thisRollHas.get(Yahtzee.Boxes.FH)){
+            //if the TK > 1 keep the TK
             if(tempRoll[2] > 1 && rollNum == 2){
                 keepValue(tempRoll[2]);
             }
+            //otherwise keep the pair
             else{
                 keepValue(tempRoll[4]);
             }
-
         }
         else if (thisRollHas.get(Yahtzee.Boxes.FK) || thisRollHas.get(Yahtzee.Boxes.TK)) {
             // if there is a 3 or 4 of a kind, the middle die is always
@@ -217,7 +229,6 @@ public class   YahtzeeStrategy {
                     if(SumArray(tempRoll) > 9) {
                         keepValue(tempRoll[2]);
                     }
-
                 }
             }
             else{
@@ -227,18 +238,7 @@ public class   YahtzeeStrategy {
         //if the user has a SS and it is open then keep it otherwise do not
         else if(thisRollHas.get(Yahtzee.Boxes.SS) && !boxFilled.get(Yahtzee.Boxes.SS)){
             //loop through roll
-            for (int i = 0; i < roll.length - 1; i++){
-                //if the index + 1 is one greater than the index value then keep the value at that index
-                if(tempRoll[i + 1] - tempRoll[i] == 1){
-                    //loop through the roll array again to get the roll's proper index instead of the temp roll index
-                    keepValue(tempRoll[i]);
-                    //if it reaches the end of the roll then keep the end value as well
-                    if(tempRoll[i + 1] == tempRoll[roll.length - 1]){
-                        //loop through the roll array again to get the roll's proper index instead of the temp roll index
-                        keepValue(tempRoll[i+1]);
-                    }
-                }
-            }
+            keepSmallStraight(tempRoll);
         }
         else{
             //check if pairs exist
@@ -283,6 +283,24 @@ public class   YahtzeeStrategy {
             }
         }
     }
+
+    public void keepSmallStraight(int[]tempRoll){
+        //loop through roll
+        for (int i = 0; i < roll.length - 1; i++){
+            //if the index + 1 is one greater than the index value then keep the value at that index
+            if(tempRoll[i + 1] - tempRoll[i] == 1){
+                //loop through the roll array again to get the roll's proper index instead of the temp roll index
+                keepValue(tempRoll[i]);
+                //if it reaches the end of the roll then keep the end value as well
+                if(tempRoll[i + 1] == tempRoll[roll.length - 1]){
+                    //loop through the roll array again to get the roll's proper index instead of the temp roll index
+                    keepValue(tempRoll[i+1]);
+                }
+            }
+        }
+
+    }
+
     public boolean checkPairs(int[]tempRoll){
         boolean hasPair = false;
         for(int i = 0; i < roll.length - 1; i++) {
