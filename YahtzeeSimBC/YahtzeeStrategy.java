@@ -195,7 +195,16 @@ public class   YahtzeeStrategy {
         }
     }
     public void determineKeepSituation(int[]tempRoll, int rollNum, int turnNum){
-        if (thisRollHas.get(Yahtzee.Boxes.FK) || thisRollHas.get(Yahtzee.Boxes.TK)) {
+        if(thisRollHas.get(Yahtzee.Boxes.FH)){
+            if(tempRoll[2] > 1 && rollNum == 2){
+                keepValue(tempRoll[2]);
+            }
+            else{
+                keepValue(tempRoll[4]);
+            }
+
+        }
+        else if (thisRollHas.get(Yahtzee.Boxes.FK) || thisRollHas.get(Yahtzee.Boxes.TK)) {
             // if there is a 3 or 4 of a kind, the middle die is always
             // part of the pattern, keep any die that matches it
             //THIS MAY BE SUBJECT TO CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -214,9 +223,6 @@ public class   YahtzeeStrategy {
             else{
                 keepValue(tempRoll[2]);
             }
-
-
-
         }
         //if the user has a SS and it is open then keep it otherwise do not
         else if(thisRollHas.get(Yahtzee.Boxes.SS) && !boxFilled.get(Yahtzee.Boxes.SS)){
@@ -463,7 +469,6 @@ public class   YahtzeeStrategy {
         }
 
     }
-    
     public int findHighestAvailableUpper(int[] tempRoll){
         for(int i = roll.length - 1; i > 0; i--){
             if(!boxFilled.get(getKeyFromString(determineUpperBox(tempRoll[i])))){
