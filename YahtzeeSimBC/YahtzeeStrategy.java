@@ -5,20 +5,15 @@ import java.util.Map;
 public class   YahtzeeStrategy {
     Yahtzee game = new Yahtzee();
     //System.out.println( game );
-
     // Used enumMap instead of boolean[] so I can use enums as indexes.
     // Keep track of which boxes I've already filled.
     Map<Yahtzee.Boxes, Boolean> boxFilled;
-
     boolean[] keep; // flag array of dice to keep
     int[] roll;  // current turn's dice state
-
     // EXAMPLE GAME PLAY
     // YOU SHOULD HEAVILY EDIT THIS LOGIC TO SUIT YOUR STRATEGY
-
     // Track what pattern matches are in the roll.
     Map<Yahtzee.Boxes, Boolean> thisRollHas;
-
     public int play() {
         for (int turnNum = 1; turnNum <= 13; turnNum++) {
             int rollNum = 0;
@@ -32,12 +27,12 @@ public class   YahtzeeStrategy {
             int[] tempRoll = roll.clone();
             Arrays.sort(tempRoll);
             //DETERMINE IF THE ROLL IS A YAHTZEE LARGE STRAIGHT OR FULL HOUSE
-            if(determineAutoFillPatterns()){
+            if(determineAutoFillPatterns(turnNum)){
                 continue;
             }
             //DECIDE IF THERE ARE DICE WE SHOULD KEEP OR Roll everything
             //PRIORITY IS U(X) > FK > TK > PAIRS
-            determineKeepSituation(tempRoll, rollNum);
+            determineKeepSituation(tempRoll, rollNum, turnNum);
             // ====================================START ROLL 2==========================================================
             roll = game.play(keep);
             rollNum = 2;
@@ -46,12 +41,12 @@ public class   YahtzeeStrategy {
             tempRoll = roll.clone();
             Arrays.sort(tempRoll);
 
-            if(determineAutoFillPatterns()){
+            if(determineAutoFillPatterns(turnNum)){
                 continue;
             }
             //DECIDE IF THERE ARE DICE WE SHOULD KEEP OR Roll everything
             //PRIORITY IS U(X) > FK > TK > PAIRS
-            determineKeepSituation(tempRoll, rollNum);
+            determineKeepSituation(tempRoll, rollNum, turnNum);
             //============================================ START ROLL 3===================================================
             roll = game.play(keep);
             rollNum = 3;
@@ -61,31 +56,22 @@ public class   YahtzeeStrategy {
             Arrays.sort(tempRoll);
             // MUST SCORE SOMETHING!!
             //determine if it is a FH, Y, or LS
-            if(determineAutoFillPatterns()){
+            if(determineAutoFillPatterns(turnNum)){
                 continue;
             }
             //if roll has SS score it
-            if(thisRollHas.get(Yahtzee.Boxes.SS) && !boxFilled.get(Yahtzee.Boxes.SS))
-                if (game.setScore("SS")) {
-                    continue;
-                }
+            if(thisRollHas.get(Yahtzee.Boxes.SS) && tryScoreValue("SS", true))
+                continue;
+
             if (HandleTkFk(tempRoll, turnNum))
-                    continue;
+                continue;
+
             int sumOfRoll = SumArray(tempRoll);
-            if(sumOfRoll > 18 ){
-                if (!boxFilled.get(Yahtzee.Boxes.C))
-                    if(game.setScore("C")){
-                        //System.out.println("hit C");
-                        continue;
-                    }
+            if(sumOfRoll > 20 ){
+                if(tryScoreValue("C", true)) continue;
             }
             else if(sumOfRoll < 6){
-                if(!boxFilled.get(Yahtzee.Boxes.U1)){
-                    if(game.setScore("U1")){
-                        //System.out.println("hit U1");
-                        continue;
-                    }
-                }
+                if(tryScoreValue("U1", true)) continue;
             }
 //            else if(SumArray(tempRoll) <){
 //
@@ -100,11 +86,14 @@ public class   YahtzeeStrategy {
                         if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("FH");
                         break;
 
-                    case TK:
-                        if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("TK");
-                        break;
                     case SS:
                         if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("SS");
+                        break;
+                    case C:
+                        if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("C");
+                        break;
+                    case TK:
+                        if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("TK");
                         break;
                     case U6:
                         if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("U6");
@@ -115,7 +104,6 @@ public class   YahtzeeStrategy {
                     case U4:
                         if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("U4");
                         break;
-
                     case U3:
                         if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("U3");
                         break;
@@ -125,9 +113,7 @@ public class   YahtzeeStrategy {
                     case U1:
                         if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("U1");
                         break;
-                    case C:
-                        if (!boxFilled.get(b) && thisRollHas.get(b)) scored = game.setScore("C");
-                        break;
+
                 }
 
                 if (scored) {
@@ -140,8 +126,6 @@ public class   YahtzeeStrategy {
                 if(!boxFilled.get(Yahtzee.Boxes.U1)){
                     scratchBox = Yahtzee.Boxes.U1;
                 }
-
-
                 else if(!boxFilled.get(Yahtzee.Boxes.Y)){
                     scratchBox = Yahtzee.Boxes.Y;
                 }
@@ -149,16 +133,16 @@ public class   YahtzeeStrategy {
                 else if(!boxFilled.get(Yahtzee.Boxes.LS)){
                     scratchBox = Yahtzee.Boxes.LS;
                 }
+
                 else if(!boxFilled.get(Yahtzee.Boxes.FK)){
                     scratchBox = Yahtzee.Boxes.FK;
-                }
-                else if(!boxFilled.get(Yahtzee.Boxes.FH)){
-                    scratchBox = Yahtzee.Boxes.FH;
                 }
                 else if(!boxFilled.get(Yahtzee.Boxes.U2)){
                     scratchBox = Yahtzee.Boxes.U2;
                 }
-
+                else if(!boxFilled.get(Yahtzee.Boxes.FH)){
+                    scratchBox = Yahtzee.Boxes.FH;
+                }
                 else if(!boxFilled.get(Yahtzee.Boxes.SS)){
                     scratchBox = Yahtzee.Boxes.SS;
                 }
@@ -190,68 +174,62 @@ public class   YahtzeeStrategy {
         return game.getGameScore();
     }
 
-    public boolean determineAutoFillPatterns(){
+    public boolean determineAutoFillPatterns(int turnNum){
         if(thisRollHas.get(Yahtzee.Boxes.Y)){
-            if(game.setScore("Y")) {
-                return true;
-            }
-            else{
-                return false;
-            }
+            return tryScoreValue("Y", false);
         }
         else if(thisRollHas.get(Yahtzee.Boxes.LS) && !boxFilled.get(Yahtzee.Boxes.LS)){
-            if(game.setScore("LS")) {
-                return true;
-            }
-            else{
-                return false;
-            }
+            return tryScoreValue("LS", false);
 
+        }
+        else if(thisRollHas.get(Yahtzee.Boxes.LS) && !boxFilled.get(Yahtzee.Boxes.SS) && turnNum >= 11){
+            return tryScoreValue("SS", false);
         }
         else if(thisRollHas.get(Yahtzee.Boxes.FH)) {
 
-            if (game.setScore("FH")) {
-                return true;
-            }
-            else{
-                return false;
-            }
+            return tryScoreValue("FH", false);
 
         }
         else{
             return false;
         }
     }
-    public void determineKeepSituation(int[]tempRoll, int rollNum){
+    public void determineKeepSituation(int[]tempRoll, int rollNum, int turnNum){
         if (thisRollHas.get(Yahtzee.Boxes.FK) || thisRollHas.get(Yahtzee.Boxes.TK)) {
             // if there is a 3 or 4 of a kind, the middle die is always
             // part of the pattern, keep any die that matches it
-            if(!boxFilled.get(Yahtzee.Boxes.FK) || !boxFilled.get(Yahtzee.Boxes.TK) || !boxFilled.get(Yahtzee.Boxes.FH) || !boxFilled.get(Yahtzee.Boxes.Y) || !boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
-                for (int i = 0; i < roll.length; i++)
-                    if (roll[i] == tempRoll[2]) keep[i] = true;
+            //THIS MAY BE SUBJECT TO CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            int highestPair = getHighestOpenPair(tempRoll);
+            if( highestPair > 2){
+                if(!boxFilled.get(Yahtzee.Boxes.FK) || !boxFilled.get(Yahtzee.Boxes.TK)  || !boxFilled.get(Yahtzee.Boxes.FH) || !boxFilled.get(getKeyFromString(determineUpperBox(highestPair)))){
+                    keepValue(highestPair);
+                }
+                else{
+                    if(SumArray(tempRoll) > 9) {
+                        keepValue(tempRoll[2]);
+                    }
+
+                }
             }
+            else{
+                keepValue(tempRoll[2]);
+            }
+
+
 
         }
         //if the user has a SS and it is open then keep it otherwise do not
-        else if(thisRollHas.get(Yahtzee.Boxes.SS) && (!boxFilled.get(Yahtzee.Boxes.SS))){
+        else if(thisRollHas.get(Yahtzee.Boxes.SS) && !boxFilled.get(Yahtzee.Boxes.SS)){
             //loop through roll
             for (int i = 0; i < roll.length - 1; i++){
                 //if the index + 1 is one greater than the index value then keep the value at that index
                 if(tempRoll[i + 1] - tempRoll[i] == 1){
                     //loop through the roll array again to get the roll's proper index instead of the temp roll index
-                    for(int j = 0; j < roll.length; j++){
-                        if(roll[j] == tempRoll[i]){
-                            keep[j] = true;
-                        }
-                    }
+                    keepValue(tempRoll[i]);
                     //if it reaches the end of the roll then keep the end value as well
                     if(tempRoll[i + 1] == tempRoll[roll.length - 1]){
                         //loop through the roll array again to get the roll's proper index instead of the temp roll index
-                        for(int j = 0; j < roll.length; j++) {
-                            if (roll[j] == tempRoll[i + 1]) {
-                                keep[j] = true;
-                            }
-                        }
+                        keepValue(tempRoll[i+1]);
                     }
                 }
             }
@@ -259,116 +237,46 @@ public class   YahtzeeStrategy {
         else{
             //check if pairs exist
             if(checkPairs(tempRoll)){
+                int highestOpenPair = getHighestOpenPair(tempRoll);
                 //if a full house is open and TK and FK are not open then keep all pairs that are found
                 if(!boxFilled.get(Yahtzee.Boxes.FH) && boxFilled.get(Yahtzee.Boxes.FK) && boxFilled.get(Yahtzee.Boxes.TK)){
-                    KeepAllPairs(tempRoll);
+                    if(highestOpenPair >= 3){
+                        keepValue(highestOpenPair);
+                    }
+                    else{
+                        keepAllPairs(tempRoll);
+                    }
+
                 }
                 else{
                     //check the value of the highest value open pair
-                    int pairValue = checkOpenPairValue(tempRoll);
-                    //if the value of the pair is < 3 keep highest singleton
-                    if( pairValue < 3 ){
-                        for(int i = 0; i < roll.length; i++){
-                            if(roll[i] == tempRoll[roll.length - 1]){
-                                keep[i] = true;
-                            }
-                        }
+                    int pairValue = getHighestOpenPair(tempRoll);
+                    //if the value of the pair is < 2 keep highest singleton
+                    if( pairValue < 2 ){
+                        keepValue(tempRoll[roll.length - 1]);
                     }
+
                     //if pair value is > 3 then keep the pair value
                     else{
-                        for(int i = 0; i < roll.length; i++){
-                            if(roll[i] == pairValue){
-                                keep[i] = true;
-                            }
-                        }
+                        keepValue(pairValue);
                     }
                 }
             }
             else{
+                int highestAvailableUpper = findHighestAvailableUpper(tempRoll);
                 //loop through roll starting at largest value for performance reasons
-                for(int i = roll.length - 1; i > 0; i--){
-                    //if there is an upper box that has not been filled and it is > 3 then keep that singleton instead of the highest singleton
-                    if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[i]))) && tempRoll[i] > 3){
-                        for(int j = 0; j < roll.length - 1; j++){
-                            if(roll[j] == tempRoll[i]){
-                                keep[j] = true;
-                            }
-                        }
+                if(highestAvailableUpper >= 2){
+                    keepValue(highestAvailableUpper);
+                }
+                else{
+                    if(tempRoll[roll.length - 1] > 3){
+                        keepValue(tempRoll[roll.length - 1]);
                     }
-                    //if there is no upper car value > 3 that is open then just grab the highest singleton
-                    else{
-                        for(int j = 0; j < roll.length - 1; j++){
-                            if(roll[j] == tempRoll[roll.length - 1]){
-                                keep[j] = true;
-                            }
-                        }
-                    }
+
                 }
             }
         }
     }
-//    public void determineKeepSituation(int[]tempRoll, int rollNum){
-//        if (thisRollHas.get(Yahtzee.Boxes.FK) || thisRollHas.get(Yahtzee.Boxes.TK)) {
-//            // if there is a 3 or 4 of a kind, the middle die is always
-//            // part of the pattern, keep any die that matches it
-//            if(!boxFilled.get(Yahtzee.Boxes.FK) || !boxFilled.get(Yahtzee.Boxes.TK) || !boxFilled.get(Yahtzee.Boxes.FH) || boxFilled.get(Yahtzee.Boxes.SS) || boxFilled.get(Yahtzee.Boxes.LS) || !boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
-//                keepValue(tempRoll[2]);
-//            }
-//
-//        }
-//        //if the user has a SS and it is open then keep it otherwise do not
-//        else if(thisRollHas.get(Yahtzee.Boxes.SS) && !boxFilled.get(Yahtzee.Boxes.SS)){
-//            //loop through roll
-//            for (int i = 0; i < roll.length - 1; i++){
-//                //if the index + 1 is one greater than the index value then keep the value at that index
-//                if(tempRoll[i + 1] - tempRoll[i] == 1){
-//                    //loop through the roll array again to get the roll's proper index instead of the temp roll index
-//                    keepValue(i);
-//                    //if it reaches the end of the roll then keep the end value as well
-//                    if(tempRoll[i + 1] == tempRoll[roll.length - 1]){
-//                        //loop through the roll array again to get the roll's proper index instead of the temp roll index
-//                        keepValue(tempRoll[i+1]);
-//                    }
-//                }
-//            }
-//        }
-//        else{
-//            //check if pairs exist
-//            if(checkPairs(tempRoll)){
-//                //if a full house is open and TK and FK are not open then keep all pairs that are found
-//                if(!boxFilled.get(Yahtzee.Boxes.FH) && boxFilled.get(Yahtzee.Boxes.FK) && boxFilled.get(Yahtzee.Boxes.TK)){
-//                    KeepAllPairs(tempRoll);
-//                }
-//                else{
-//                    //check the value of the highest value open pair
-//                    int pairValue = checkOpenPairValue(tempRoll);
-//                    //if the value of the pair is < 3 keep highest singleton
-//                    if( pairValue < 3 ){
-//                        keepValue(tempRoll[roll.length - 1]);
-//                    }
-//                    //if pair value is > 3 then keep the pair value
-//                    else{
-//                        keepValue(pairValue);
-//                    }
-//                }
-//            }
-//            else{
-//                //loop through roll starting at largest value for performance reasons
-//                for(int i = roll.length - 1; i > 0; i--){
-//                    //if there is an upper box that has not been filled and it is > 3 then keep that singleton instead of the highest singleton
-//                    if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[i]))) && tempRoll[i] >= 3){
-//                        keepValue(tempRoll[i]);
-//                    }
-//                    //if there is no upper card value > 3 that is open then just grab the highest singleton
-//                    else{
-//                        if(tempRoll[roll.length - 1] > 3){
-//                            keepValue(tempRoll[roll.length - 1]);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
     public boolean checkPairs(int[]tempRoll){
         boolean hasPair = false;
         for(int i = 0; i < roll.length - 1; i++) {
@@ -379,35 +287,46 @@ public class   YahtzeeStrategy {
         }
         return hasPair;
     }
-    public int checkOpenPairValue(int[]tempRoll){
+    public int getHighestOpenPair(int[]tempRoll){
         int value = 0;
         for(int i = 0; i < roll.length - 1; i++) {
-            if (tempRoll[i] == tempRoll[i + 1] && !boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[i])))) {
+            if (tempRoll[i] == tempRoll[i + 1] && !boxFilled.get(getKeyFromString(determineUpperBox(tempRoll[i])))) {
                 value = tempRoll[i];
             }
         }
         return value;
     }
 
-    public void KeepHighestPair(int[]tempRoll){
-        int pairIndex = 0;
+    public void keepHighestPair(int[]tempRoll){
+        int pairValue = 0;
         for(int i = 0; i < roll.length - 1; i++) {
             if (tempRoll[i] == tempRoll[i + 1]) {
-                pairIndex = i;
+                pairValue = tempRoll[i];
+
             }
         }
-        if(pairIndex != 0){
-            keepValue(tempRoll[pairIndex]);
+        if(pairValue != 0){
+            keepValue(pairValue);
         }
         else{
             keepValue(tempRoll[roll.length - 1]);
         }
 
     }
-    public void KeepAllPairs(int[]tempRoll){
+    public void keepAllPairs(int[]tempRoll){
+        int pairCounter = 0;
         for(int i = 0; i < roll.length - 1; i++) {
             if (tempRoll[i] == tempRoll[i + 1]) {
-                keepValue(tempRoll[i]);
+                pairCounter++;
+
+            }
+        }
+        if(pairCounter == 2){
+            for(int i = 0; i < roll.length - 1; i++) {
+                if (tempRoll[i] == tempRoll[i + 1]) {
+                    keepValue(tempRoll[i]);
+
+                }
             }
         }
     }
@@ -421,47 +340,38 @@ public class   YahtzeeStrategy {
 
     public boolean HandleTkFk(int[]tempRoll, int turnNum) {
         if (thisRollHas.get(Yahtzee.Boxes.FK)) {
-            if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
-                return game.setScore(DetermineUpperBox(tempRoll[2]));
-            }
-            else{
-                if(!boxFilled.get(Yahtzee.Boxes.FK) ){
-                    return game.setScore("FK");
+            if(!tryScoreUpperValue(tempRoll[2], true)){
+                if(!tryScoreValue("FK", true)){
+                    return tryScoreValue("TK", true);
                 }
                 else{
-
-                    if(!boxFilled.get(Yahtzee.Boxes.TK)){
-                        return game.setScore("TK");
-                    }
-                    else{
-                        return false;
-                    }
-
+                    return true;
                 }
+            }
+            else{
+               return true;
             }
         }
         else if (thisRollHas.get(Yahtzee.Boxes.TK)){
             //if(turnNum < 10){
-            if(!boxFilled.get(getKeyFromString(DetermineUpperBox(tempRoll[2])))){
-                return game.setScore(DetermineUpperBox(tempRoll[2]));
-            }
-            else{
-                if(!boxFilled.get(Yahtzee.Boxes.TK) && SumArray(tempRoll) > 15 ){
-                    return game.setScore("TK");
+            if(!tryScoreUpperValue(tempRoll[2], true)){
+                if(SumArray(tempRoll) > 15){
+                    return tryScoreValue("TK", true);
                 }
                 else{
                     return false;
                 }
-
             }
-
+            else{
+                return true;
+            }
         }
         else{
             return false;
         }
     }
 
-    public String DetermineUpperBox(int upperBoxNum){ ;
+    public String determineUpperBox(int upperBoxNum){ ;
         switch (upperBoxNum){
             case 1:
                 return "U1";
@@ -521,11 +431,7 @@ public class   YahtzeeStrategy {
         }
     }
 
-//    public boolean isChecked(Object key){
-//        boxFilled.get(key))
-//
-//
-//    }
+
 
     public boolean tryScoreValue(String pattern, boolean checkIfOpen){
         if(!checkIfOpen){
@@ -544,12 +450,12 @@ public class   YahtzeeStrategy {
 
     public boolean tryScoreUpperValue(int pattern, boolean checkIfOpen){
         if(!checkIfOpen){
-            return game.setScore(DetermineUpperBox(pattern));
+            return game.setScore(determineUpperBox(pattern));
 
         }
         else{
-            if(!boxFilled.get(getKeyFromString(DetermineUpperBox(pattern)))){
-                return game.setScore(DetermineUpperBox(pattern));
+            if(!boxFilled.get(getKeyFromString(determineUpperBox(pattern)))){
+                return game.setScore(determineUpperBox(pattern));
             }
             else{
                 return false;
@@ -557,7 +463,13 @@ public class   YahtzeeStrategy {
         }
 
     }
-
     
-
+    public int findHighestAvailableUpper(int[] tempRoll){
+        for(int i = roll.length - 1; i > 0; i--){
+            if(!boxFilled.get(getKeyFromString(determineUpperBox(tempRoll[i])))){
+                return tempRoll[i];
+            }
+        }
+        return 0;
+    }
 }
