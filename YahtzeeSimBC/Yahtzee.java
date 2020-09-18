@@ -164,7 +164,7 @@ public class Yahtzee {
     }
 
     /**
-     * @param roll an array containing the values of 5 dice, sorted numerically
+     * @param theRoll an array containing the values of 5 dice, sorted numerically
      * @param b the box you wish to test against
      * @return true if the dice score > 0 in the box you provided
      */
