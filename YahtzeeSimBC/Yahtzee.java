@@ -168,7 +168,7 @@ public class Yahtzee {
      * @param b the box you wish to test against
      * @return true if the dice score > 0 in the box you provided
      */
-    private boolean has( int[] theRoll, Boxes b ) {
+    public boolean has( int[] theRoll, Boxes b ) {
         boolean found = false;
         
         int[] roll = theRoll.clone();
