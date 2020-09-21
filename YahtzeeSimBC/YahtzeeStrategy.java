@@ -239,41 +239,7 @@ public class   YahtzeeStrategy {
         else if(almostSmallStraight(tempRoll) && !boxFilled.get(Yahtzee.Boxes.SS) && boxFilled.get(Yahtzee.Boxes.FK) && boxFilled.get(Yahtzee.Boxes.TK)  && getHighestOpenPair(tempRoll) < 4){
             //System.out.println(tempRoll[0] + " " + tempRoll[1] + " " + tempRoll[2] + " " + tempRoll[3] + " " + tempRoll[4]);
 
-            for(int i = 0; i < tempRoll.length - 2; i++){
-                if(tempRoll[i + 1] - tempRoll[i] == 1 ){
-                    int keepCount = 0;
-                    int keepCount2 = 0;
-                    for(int j = 0; j < roll.length; j++){
-                        if(roll[j] == tempRoll[i] && keepCount == 0){
-                            keep[j] = true;
-                            keepCount++;
-                        }
-                        if(i + 1 == tempRoll.length - 1){
-                            if(roll[j] == tempRoll[i + 1 ] && keepCount2 == 0){
-                                keep[j] = true;
-                                keepCount2++;
-                            }
-                        }
-                    }
-
-                }
-                if(tempRoll[i + 2] - tempRoll[i] == 2){
-                    int keepCount = 0;
-                    int keepCount2 = 0;
-                    for(int j = 0; j < roll.length; j++){
-                        if(roll[j] == tempRoll[i] && keepCount == 0){
-                            keep[j] = true;
-                            keepCount++;
-                        }
-                        if(i + 2 == tempRoll.length - 1){
-                            if(roll[j] == tempRoll[i + 2] && keepCount2 == 0){
-                                keep[j] = true;
-                                keepCount2++;
-                            }
-                        }
-                    }
-                }
-            }
+            keepAlmostSmallStraight(tempRoll);
 
         }
         else{
@@ -290,17 +256,18 @@ public class   YahtzeeStrategy {
                     }
 
                 }
+//                else if(highestOpenPair < 2 && !boxFilled.get(Yahtzee.Boxes.TK) && !boxFilled.get(Yahtzee.Boxes.FK)){
+//                    keepHighestPair(tempRoll);
+//                }
                 else{
-                    //check the value of the highest value open pair
-                    int pairValue = getHighestOpenPair(tempRoll);
                     //if the value of the pair is < 2 keep highest singleton
-                    if( pairValue < 2 ){
+                    if( highestOpenPair < 2 ){
                         keepValue(tempRoll[roll.length - 1]);
                     }
 
                     //if pair value is > 3 then keep the pair value
                     else{
-                        keepValue(pairValue);
+                        keepValue(highestOpenPair);
                     }
                 }
             }
@@ -354,6 +321,43 @@ public class   YahtzeeStrategy {
         }
         return false;
     }
+    public void keepAlmostSmallStraight(int[] tempRoll){
+        for(int i = 0; i < tempRoll.length - 2; i++){
+            if(tempRoll[i + 1] - tempRoll[i] == 1 ){
+                int keepCount = 0;
+                int keepCount2 = 0;
+                for(int j = 0; j < roll.length; j++){
+                    if(roll[j] == tempRoll[i] && keepCount == 0){
+                        keep[j] = true;
+                        keepCount++;
+                    }
+                    if(i + 1 == tempRoll.length - 1){
+                        if(roll[j] == tempRoll[i + 1 ] && keepCount2 == 0){
+                            keep[j] = true;
+                            keepCount2++;
+                        }
+                    }
+                }
+
+            }
+            if(tempRoll[i + 2] - tempRoll[i] == 2){
+                int keepCount = 0;
+                int keepCount2 = 0;
+                for(int j = 0; j < roll.length; j++){
+                    if(roll[j] == tempRoll[i] && keepCount == 0){
+                        keep[j] = true;
+                        keepCount++;
+                    }
+                    if(i + 2 == tempRoll.length - 1){
+                        if(roll[j] == tempRoll[i + 2] && keepCount2 == 0){
+                            keep[j] = true;
+                            keepCount2++;
+                        }
+                    }
+                }
+            }
+        }
+    }
     public boolean checkPairs(int[]tempRoll){
         boolean hasPair = false;
         for(int i = 0; i < roll.length - 1; i++) {
@@ -385,9 +389,7 @@ public class   YahtzeeStrategy {
         if(pairValue != 0){
             keepValue(pairValue);
         }
-        else{
-            keepValue(tempRoll[roll.length - 1]);
-        }
+
 
     }
     public void keepAllPairs(int[]tempRoll){
