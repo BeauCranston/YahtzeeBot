@@ -83,7 +83,7 @@ public class Yahtzee {
             score += (i == null ? 0 : i);
         
         // apply upper panel score bonus
-        if ( score > 63 ) score += 35;
+        if ( score >= 63 ) score += 35;
         
         return score;
     }
