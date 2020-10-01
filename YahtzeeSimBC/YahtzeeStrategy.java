@@ -180,7 +180,7 @@ public class   YahtzeeStrategy {
      */
     public boolean determineAutoFillPatterns(int turnNum, int rollNum, int[] tempRoll){
         if(thisRollHas.get(Yahtzee.Boxes.Y)){
-            //if the roll has a yahtzee and it is > 4  and the turn number is > 9 and yahtzee bonus is not available then score it in the upper card instead of the yahtzee to prioritize the upper bonus 
+            //if the roll has a yahtzee and it is > 4  and the turn number is > 9 and yahtzee bonus is not available then score it in the upper card instead of the yahtzee to prioritize the upper bonus
             if(roll[1] > 4){
                 if(!boxFilled.get(getKeyFromString(getUpperBoxByValue(roll[1]))) && !boxFilled.get(Yahtzee.Boxes.Y) && turnNum > 9){
                     return tryScoreValue(getUpperBoxByValue(roll[1]), false);
@@ -190,7 +190,7 @@ public class   YahtzeeStrategy {
                     return tryScoreValue("Y", false);
                 }
             }
-            else{
+            else {
                 return tryScoreValue("Y", false);
             }
         }
@@ -221,18 +221,11 @@ public class   YahtzeeStrategy {
      */
     public void determineKeepSituation(int[]tempRoll){
         //if the roll has a tk or fk
-        if (thisRollHas.get(Yahtzee.Boxes.FK) || thisRollHas.get(Yahtzee.Boxes.TK) ) {
+        //if the box is not filled for the upper card, TK or FK and the TK/FK is > 1 then keep the value where the TK or FK is
+        if ((thisRollHas.get(Yahtzee.Boxes.FK) || thisRollHas.get(Yahtzee.Boxes.TK)) && (!boxFilled.get(getKeyFromString(getUpperBoxByValue(tempRoll[2]))) || !boxFilled.get(Yahtzee.Boxes.FK) || !boxFilled.get(Yahtzee.Boxes.TK) && tempRoll[2] > 1 )) {
             // if there is a 3 or 4 of a kind, the middle die is always
             // part of the pattern, keep any die that matches it
-            //if the box is not filled for the upper card, TK or FK and the TK/FK is > 1 then keep the value where the TK or FK is
-            if(!boxFilled.get(getKeyFromString(getUpperBoxByValue(tempRoll[2]))) || !boxFilled.get(Yahtzee.Boxes.FK) || !boxFilled.get(Yahtzee.Boxes.TK) && tempRoll[2] > 1){
                 keepValue(tempRoll[2]);
-            }
-            //otherwise take the highest value
-            else{
-                keepValue(tempRoll[4]);
-            }
-
         }
         //if the user has a SS and it is open then keep it otherwise do not
         else if(thisRollHas.get(Yahtzee.Boxes.SS) && !boxFilled.get(Yahtzee.Boxes.SS)){
@@ -246,10 +239,11 @@ public class   YahtzeeStrategy {
         }
         else{
             //check if pairs exist
-            if(checkPairs(tempRoll) > 0){
+            int pairNum = checkPairs(tempRoll);
+            if(pairNum > 0){
                 int highestOpenPair = getHighestOpenPair(tempRoll);
                  //if a full house is open and TK and FK are not open then keep the highest open pair if > 2 otherwise keep all pairs
-                if(!boxFilled.get(Yahtzee.Boxes.FH)  && checkPairs(tempRoll) == 2){
+                if(!boxFilled.get(Yahtzee.Boxes.FH) && pairNum == 2){
                     //if the highest open pair is >= 3 then keep it otherwise, keep all of the pairs
                     if(highestOpenPair >= 3){
                         keepValue(highestOpenPair);
@@ -274,7 +268,7 @@ public class   YahtzeeStrategy {
 
             }
             else{
-                //if the roll has aboslutely nothing then keep the highest available upper card value
+                //if the roll has absolutely nothing then keep the highest available upper card value
                 int highestAvailableUpper = findHighestAvailableUpper(tempRoll);
                 //loop through roll starting at largest value for performance reasons
                 if(highestAvailableUpper >= 2){
